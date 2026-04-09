@@ -9,12 +9,11 @@ if %ERRORLEVEL% NEQ 0 (
     echo Using system Ludusavi
 )
 
-REM Get game arguments
 set "ludusavi_game=%~1"
-set "game_exe=%~2"
 
 REM Build game arguments (all remaining arguments after %2)
 REM Taken from https://stackoverflow.com/a/761658
+set "game_exe=%~2"
 set game_args=%3
 :loop
 shift
@@ -23,20 +22,20 @@ set game_args=%game_args% %3
 goto loop
 :afterloop
 
-REM Use PowerShell only to get Ludusavi backup path
+REM Uses PowerShell to get Ludusavi backup path
 for /f "usebackq delims=" %%B in (`powershell -NoProfile -Command ^
     "(ludusavi config show --api | ConvertFrom-Json).backup.path"`) do set "ludusavi_backup_dir=%%B"
 
-REM Create a local backup before restoring
+REM # Create a local backup of the game before restoring files from the cloud to provide a recovery option in case of save conflicts
 ludusavi backup --path "%ludusavi_backup_dir%/.backup" --full-limit 2 --force --no-cloud-sync "%ludusavi_game%"
 
-REM Restore cloud saves
+REM Overwrite local saves with cloud saves and restore the latest save file
 ludusavi cloud download --force "%ludusavi_game%"
 ludusavi restore --force --gui --ask-downgrade --no-cloud-sync  "%ludusavi_game%"
 
 REM Run the game
 "%game_exe%" %game_args%
 
-REM Upload cloud save after playing
+REM Back up the game and overwrite the cloud saves with the local saves
 ludusavi backup --force --gui --no-cloud-sync  "%ludusavi_game%"
 ludusavi cloud upload --force "%ludusavi_game%"

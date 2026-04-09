@@ -31,16 +31,16 @@ ludusavi_backup_dir=$(ludusavi config show --api | jq -r '.backup.path')
 
 shift
 
-# Creates a local backup of the game before restoring files from the cloud to provide a recovery option in case of save conflicts
+# Create a local backup of the game before restoring files from the cloud to provide a recovery option in case of save conflicts
 ludusavi backup --path "${ludusavi_backup_dir}/.backup" --full-limit 2 --force --no-cloud-sync "$ludusavi_game"
 
-# Overwrites local saves with cloud saves and restores the latest save file
+# Overwrite local saves with cloud saves and restore the latest save file
 ludusavi cloud download --force "$ludusavi_game"
 ludusavi restore --force --gui --ask-downgrade --no-cloud-sync "$ludusavi_game"
 
-# Runs the game
+# Run the game
 "$@"
 
-# Backs up the game and overwrites the cloud saves with the local saves
+# Back up the game and overwrite the cloud saves with the local saves
 ludusavi backup --force --gui --no-cloud-sync "$ludusavi_game"
 ludusavi cloud upload --force "$ludusavi_game"
