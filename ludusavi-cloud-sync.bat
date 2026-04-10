@@ -1,6 +1,7 @@
 @echo off
 
 REM Show GUI and commandline error messages
+goto :main
 :err
     setlocal enabledelayedexpansion
         set "msg=%~1"
@@ -8,12 +9,11 @@ REM Show GUI and commandline error messages
         >&2 echo !msg!
 
         powershell -NoProfile -Command ^
-            "Add-Type -AssemblyName System.Windows.Forms; ^
-            [System.Windows.Forms.MessageBox]::Show('!msg!','ludusavi-cloud-sync.ps1','OK','Error')"
+            "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('!msg!','ludusavi-cloud-sync.ps1','OK','Error')"
 
     endlocal
 exit /b 0
-
+:main
 
 REM Check if Ludusavi is available
 where ludusavi >nul 2>&1
@@ -41,7 +41,7 @@ REM Uses PowerShell to get Ludusavi backup path
 for /f "usebackq delims=" %%B in (`powershell -NoProfile -Command ^
     "(ludusavi config show --api | ConvertFrom-Json).backup.path"`) do set "ludusavi_backup_dir=%%B"
 for /f "usebackq delims=" %%B in (`powershell -NoProfile -Command ^
-    "(ludusavi config show --api | ConvertFrom-Json).backup.path"`) do set "ludusavi_cloud_dir=%%B"
+    "(ludusavi config show --api | ConvertFrom-Json).cloud.path"`) do set "ludusavi_cloud_dir=%%B"
 
 
 set "local_sync_dir=%ludusavi_backup_dir%/.cloud-sync"
@@ -52,11 +52,11 @@ ludusavi backup --path "%local_sync_dir%.backup" --full-limit 2 --differential-l
 
 REM Overwrite local saves with cloud saves
 ludusavi cloud download --local "%local_sync_dir%" --cloud "%cloud_sync_dir%" --force "%ludusavi_game%"
-if ERRORLEVEL EQU 0 (
-    set cloud_sync=0
-) else (
+if ERRORLEVEL 1 (
     set cloud_sync=1
     call:err "Failed to download save from the cloud, will not attempt upload after game closes."
+) else (
+    set cloud_sync=0
 )
 
 REM Restore the latest save file
