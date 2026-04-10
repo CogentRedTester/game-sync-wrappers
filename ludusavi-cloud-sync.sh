@@ -36,7 +36,7 @@ ludusavi_backup_dir=$(ludusavi config show --api | jq -r '.backup.path')
 ludusavi backup --path "${ludusavi_backup_dir}/.backup" --full-limit 2 --force --no-cloud-sync "$ludusavi_game"
 
 # Overwrite local saves with cloud saves
-if ludusavi cloud download --force "$ludusavi_game"; then
+if timeout 10s $ludusavi cloud download --local "$local_sync_dir" --cloud "$cloud_sync_dir" --force "$ludusavi_game"; then
     cloud_sync=0
 else
     err "Failed to download save from the cloud, will not attempt upload after game closes."
