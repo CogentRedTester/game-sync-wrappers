@@ -5,7 +5,7 @@ if command -v ludusavi >/dev/null 2>&1; then
     echo 'Using system Ludusavi'
 
 # If the flatpak version is available, use that.
-elif command -v flatpak run com.github.mtkennerly.ludusavi >/dev/null 2>&1; then
+elif flatpak run com.github.mtkennerly.ludusavi -V >/dev/null 2>&1; then
     echo 'Using flatpak Ludusavi'
     ludusavi() {
         flatpak run com.github.mtkennerly.ludusavi "$@"
