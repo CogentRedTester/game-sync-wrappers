@@ -39,7 +39,7 @@ local_sync_dir="$ludusavi_backup_dir/.cloud-sync"
 cloud_sync_dir="$ludusavi_cloud_dir.cloud-sync"
 
 # Create a local backup of the game before restoring files from the cloud to provide a recovery option in case of save conflicts
-ludusavi backup --path "${local_sync_dir}.backup" --full-limit 2 --force --no-cloud-sync "$ludusavi_game"
+ludusavi backup --path "${local_sync_dir}.backup" --full-limit 2 --differential-limit 0 --force --no-cloud-sync "$ludusavi_game"
 
 # Overwrite local saves with cloud saves
 if timeout 10s $ludusavi cloud download --local "$local_sync_dir" --cloud "$cloud_sync_dir" --force "$ludusavi_game"; then
@@ -57,7 +57,7 @@ shift
 "$@"
 
 # Back up the game and overwrite the cloud saves with the local saves
-ludusavi backup --path "$local_sync_dir" --force --gui --no-cloud-sync "$ludusavi_game"
+ludusavi backup --path "$local_sync_dir" --force --gui --no-cloud-sync --format zip --full-limit 2 --differential-limit 0 "$ludusavi_game"
 
 if [ "$cloud_sync" -eq 0 ]; then
     ludusavi cloud upload --local "$local_sync_dir" --cloud "$cloud_sync_dir" --force "$ludusavi_game"

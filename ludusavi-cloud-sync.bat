@@ -48,7 +48,7 @@ set "local_sync_dir=%ludusavi_backup_dir%/.cloud-sync"
 set "cloud_sync_dir=%ludusavi_cloud_dir%.cloud-sync"
 
 REM # Create a local backup of the game before restoring files from the cloud to provide a recovery option in case of save conflicts
-ludusavi backup --path "%local_sync_dir%.backup" --full-limit 2 --force --no-cloud-sync "%ludusavi_game%"
+ludusavi backup --path "%local_sync_dir%.backup" --full-limit 2 --differential-limit 0 --force --no-cloud-sync "%ludusavi_game%"
 
 REM Overwrite local saves with cloud saves
 ludusavi cloud download --local "%local_sync_dir%" --cloud "%cloud_sync_dir%" --force "%ludusavi_game%"
@@ -66,7 +66,7 @@ REM Run the game
 "%game_exe%" %game_args%
 
 REM Back up the game and overwrite the cloud saves with the local saves
-ludusavi backup --path "%local_sync_dir%" --force --gui --no-cloud-sync  "%ludusavi_game%"
+ludusavi backup --path "%local_sync_dir%" --force --gui --no-cloud-sync --format zip --full-limit 2 --differential-limit 0 "%ludusavi_game%"
 
 if %cloud_sync% EQU 0 (
     ludusavi cloud upload --local "%local_sync_dir%" --cloud "%cloud_sync_dir%" --force "%ludusavi_game%"
