@@ -40,12 +40,18 @@ set game_args=%3
 REM Uses PowerShell to get Ludusavi backup path
 for /f "usebackq delims=" %%B in (`powershell -NoProfile -Command ^
     "(ludusavi config show --api | ConvertFrom-Json).backup.path"`) do set "ludusavi_backup_dir=%%B"
+for /f "usebackq delims=" %%B in (`powershell -NoProfile -Command ^
+    "(ludusavi config show --api | ConvertFrom-Json).backup.path"`) do set "ludusavi_cloud_dir=%%B"
+
+
+set "local_sync_dir=%ludusavi_backup_dir%/.cloud-sync"
+set "cloud_sync_dir=%ludusavi_cloud_dir%.cloud-sync"
 
 REM # Create a local backup of the game before restoring files from the cloud to provide a recovery option in case of save conflicts
-ludusavi backup --path "%ludusavi_backup_dir%/.backup" --full-limit 2 --force --no-cloud-sync "%ludusavi_game%"
+ludusavi backup --path "%local_sync_dir%.backup" --full-limit 2 --force --no-cloud-sync "%ludusavi_game%"
 
 REM Overwrite local saves with cloud saves
-ludusavi cloud download --force "%ludusavi_game%"
+ludusavi cloud download --local "%local_sync_dir%" --cloud "%cloud_sync_dir%" --force "%ludusavi_game%"
 if ERRORLEVEL EQU 0 (
     set cloud_sync=0
 ) else (
@@ -54,14 +60,14 @@ if ERRORLEVEL EQU 0 (
 )
 
 REM Restore the latest save file
-ludusavi restore --force --gui --ask-downgrade --no-cloud-sync  "%ludusavi_game%"
+ludusavi restore --path "%local_sync_dir%" --force --gui --ask-downgrade --no-cloud-sync  "%ludusavi_game%"
 
 REM Run the game
 "%game_exe%" %game_args%
 
 REM Back up the game and overwrite the cloud saves with the local saves
-ludusavi backup --force --gui --no-cloud-sync  "%ludusavi_game%"
+ludusavi backup --path "%local_sync_dir%" --force --gui --no-cloud-sync  "%ludusavi_game%"
 
 if %cloud_sync% EQU 0 (
-    ludusavi cloud upload --force "%ludusavi_game%"
+    ludusavi cloud upload --local "%local_sync_dir%" --cloud "%cloud_sync_dir%" --force "%ludusavi_game%"
 )

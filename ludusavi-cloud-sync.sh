@@ -16,10 +16,12 @@ err() {
 # Check if ludusavi is available
 if command -v ludusavi >/dev/null 2>&1; then
     echo 'Using system Ludusavi'
+    ludusavi=ludusavi
 
 # If the flatpak version is available, use that.
 elif flatpak run com.github.mtkennerly.ludusavi -V >/dev/null 2>&1; then
     echo 'Using flatpak Ludusavi'
+    ludusavi="flatpak run com.github.mtkennerly.ludusavi"
     ludusavi() {
         flatpak run com.github.mtkennerly.ludusavi "$@"
     }
@@ -29,11 +31,15 @@ else
     exit 1
 fi
 
-ludusavi_game="$1"
 ludusavi_backup_dir=$(ludusavi config show --api | jq -r '.backup.path')
+ludusavi_cloud_dir=$(ludusavi config show --api | jq -r '.cloud.path')
+
+ludusavi_game="$1"
+local_sync_dir="$ludusavi_backup_dir/.cloud-sync"
+cloud_sync_dir="$ludusavi_cloud_dir.cloud-sync"
 
 # Create a local backup of the game before restoring files from the cloud to provide a recovery option in case of save conflicts
-ludusavi backup --path "${ludusavi_backup_dir}/.backup" --full-limit 2 --force --no-cloud-sync "$ludusavi_game"
+ludusavi backup --path "${local_sync_dir}.backup" --full-limit 2 --force --no-cloud-sync "$ludusavi_game"
 
 # Overwrite local saves with cloud saves
 if timeout 10s $ludusavi cloud download --local "$local_sync_dir" --cloud "$cloud_sync_dir" --force "$ludusavi_game"; then
@@ -44,15 +50,15 @@ else
 fi
 
 # Restore the latest save file
-ludusavi restore --force --gui --ask-downgrade --no-cloud-sync "$ludusavi_game"
+ludusavi restore --path "$local_sync_dir" --force --gui --ask-downgrade --no-cloud-sync "$ludusavi_game"
 
 # Run the game
 shift
 "$@"
 
 # Back up the game and overwrite the cloud saves with the local saves
-ludusavi backup --force --gui --no-cloud-sync "$ludusavi_game"
+ludusavi backup --path "$local_sync_dir" --force --gui --no-cloud-sync "$ludusavi_game"
 
 if [ "$cloud_sync" -eq 0 ]; then
-    ludusavi cloud upload --force "$ludusavi_game"
+    ludusavi cloud upload --local "$local_sync_dir" --cloud "$cloud_sync_dir" --force "$ludusavi_game"
 fi
