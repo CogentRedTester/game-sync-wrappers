@@ -42,11 +42,11 @@ cloud_sync_dir="$ludusavi_cloud_dir.cloud-sync"
 ludusavi backup --path "${local_sync_dir}.backup" --full-limit 2 --differential-limit 0 --force --no-cloud-sync "$ludusavi_game"
 
 # Overwrite local saves with cloud saves
-if timeout 10s $ludusavi cloud download --local "$local_sync_dir" --cloud "$cloud_sync_dir" --force "$ludusavi_game"; then
-    cloud_sync=0
-else
+if ! timeout 15s $ludusavi cloud download --local "$local_sync_dir" --cloud "$cloud_sync_dir" --force "$ludusavi_game"; then
     err "Failed to download save from the cloud, will not attempt upload after game closes."
     cloud_sync=1
+else
+    cloud_sync=0
 fi
 
 # Restore the latest save file
@@ -60,5 +60,7 @@ shift
 ludusavi backup --path "$local_sync_dir" --force --gui --no-cloud-sync --format zip --full-limit 2 --differential-limit 0 "$ludusavi_game"
 
 if [ "$cloud_sync" -eq 0 ]; then
-    ludusavi cloud upload --local "$local_sync_dir" --cloud "$cloud_sync_dir" --force "$ludusavi_game"
+    if ! timeout 15s $ludusavi cloud upload --local "$local_sync_dir" --cloud "$cloud_sync_dir" --force "$ludusavi_game"; then
+        err "Failed to upload save to the cloud. Do not overwrite local save next time."
+    fi
 fi

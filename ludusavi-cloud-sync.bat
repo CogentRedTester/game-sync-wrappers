@@ -70,4 +70,7 @@ ludusavi backup --path "%local_sync_dir%" --force --gui --no-cloud-sync --format
 
 if %cloud_sync% EQU 0 (
     ludusavi cloud upload --local "%local_sync_dir%" --cloud "%cloud_sync_dir%" --force "%ludusavi_game%"
+    if ERRORLEVEL 1 (
+        call:err "Failed to upload save to the cloud. Do not overwrite local save next time."
+    )
 )
