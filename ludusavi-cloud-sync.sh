@@ -13,17 +13,19 @@ err() {
     fi
 }
 
+steam_env_esc="env -u LD_PRELOAD -u LD_LIBRARY_PATH"
+
 # Check if ludusavi is available
 if command -v ludusavi >/dev/null 2>&1; then
     echo 'Using system Ludusavi'
     ludusavi=ludusavi
 
 # If the flatpak version is available, use that.
-elif flatpak run com.github.mtkennerly.ludusavi -V >/dev/null 2>&1; then
+elif $steam_env_esc flatpak run com.github.mtkennerly.ludusavi -V >/dev/null 2>&1; then
     echo 'Using flatpak Ludusavi'
-    ludusavi="flatpak run com.github.mtkennerly.ludusavi"
+    ludusavi="$steam_env_esc flatpak run com.github.mtkennerly.ludusavi"
     ludusavi() {
-        flatpak run com.github.mtkennerly.ludusavi "$@"
+        $steam_env_esc flatpak run com.github.mtkennerly.ludusavi "$@"
     }
 
 else
