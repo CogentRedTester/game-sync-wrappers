@@ -44,7 +44,7 @@ for /f "usebackq delims=" %%B in (`powershell -NoProfile -Command ^
     "(ludusavi config show --api | ConvertFrom-Json).cloud.path"`) do set "ludusavi_cloud_dir=%%B"
 
 
-set "local_sync_dir=%ludusavi_backup_dir%/.cloud-sync"
+set "local_sync_dir=%ludusavi_backup_dir%/../.cloud-sync"
 set "cloud_sync_dir=%ludusavi_cloud_dir%.cloud-sync"
 
 REM # Create a local backup of the game before restoring files from the cloud to provide a recovery option in case of save conflicts

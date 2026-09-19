@@ -35,7 +35,7 @@ ludusavi_backup_dir=$(ludusavi config show --api | jq -r '.backup.path')
 ludusavi_cloud_dir=$(ludusavi config show --api | jq -r '.cloud.path')
 
 ludusavi_game="$1"
-local_sync_dir="$ludusavi_backup_dir/.cloud-sync"
+local_sync_dir="$ludusavi_backup_dir/../.cloud-sync"
 cloud_sync_dir="$ludusavi_cloud_dir.cloud-sync"
 
 # Create a local backup of the game before restoring files from the cloud to provide a recovery option in case of save conflicts
